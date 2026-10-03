@@ -10,14 +10,12 @@ export const BASELINE_FILENAME = 'ChemLab_3D_Interactive_App.html';
 
 const PART_PREFIX = `${BASELINE_FILENAME}.gz.b64.part-`;
 const BASELINE_PARTS = Object.freeze([
-  ...Array.from({ length: 12 }, (_, index) => `${PART_PREFIX}${String(index).padStart(2, '0')}`),
-  `${PART_PREFIX}12a`,
-  `${PART_PREFIX}12b`,
-  `${PART_PREFIX}12c`,
-  `${PART_PREFIX}12d`,
-  `${PART_PREFIX}13a`,
-  `${PART_PREFIX}13b`,
-  `${PART_PREFIX}13c`,
+  `${PART_PREFIX}00`, `${PART_PREFIX}01`, `${PART_PREFIX}02`, `${PART_PREFIX}03`,
+  `${PART_PREFIX}04a`, `${PART_PREFIX}04b`, `${PART_PREFIX}04c`, `${PART_PREFIX}04d`,
+  `${PART_PREFIX}05`, `${PART_PREFIX}06`, `${PART_PREFIX}07`, `${PART_PREFIX}08`,
+  `${PART_PREFIX}09`, `${PART_PREFIX}10`, `${PART_PREFIX}11`,
+  `${PART_PREFIX}12a`, `${PART_PREFIX}12b`, `${PART_PREFIX}12c`, `${PART_PREFIX}12d`,
+  `${PART_PREFIX}13a`, `${PART_PREFIX}13b`, `${PART_PREFIX}13c`,
 ]);
 
 export async function restoreAcceptedBaseline() {
