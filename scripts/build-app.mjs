@@ -5,18 +5,20 @@ import { PROJECT_ROOT } from './baseline.mjs';
 import { buildAppHtml as buildCoreAppHtml } from './build-app-core.mjs';
 import { applyBuildTransforms } from './build-transform-pipeline.mjs';
 import { LAB_BUILD_TRANSFORMS } from '../src/features/lab/build/index.mjs';
+import { ACCESSIBILITY_BUILD_TRANSFORMS } from '../src/features/accessibility/build/index.mjs';
 
 export const CURRENT_APP_TRANSFORMS = Object.freeze([
   ...LAB_BUILD_TRANSFORMS,
+  ...ACCESSIBILITY_BUILD_TRANSFORMS,
 ]);
 
 /**
  * Stable current-app build entrypoint.
  *
- * Phase-specific implementation details stay behind feature boundaries so npm,
+ * Feature-specific implementation details stay behind feature boundaries so npm,
  * browser tests, deployment and future refactors do not need to know which
  * historical phase introduced a transform. Transform order is explicit and
- * byte-equivalence tested.
+ * regression tested.
  */
 export async function buildAppHtml() {
   const coreHtml = await buildCoreAppHtml();
