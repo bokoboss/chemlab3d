@@ -4,6 +4,7 @@ import { dirname, join, resolve } from 'node:path';
 import { PROJECT_ROOT } from './baseline.mjs';
 import { buildAppHtml as buildPhase1AppHtml } from './build-app.mjs';
 import { applyReactionLab } from './reaction-lab-build.mjs';
+import { applyReactionSourceUi } from './reaction-source-ui-build.mjs';
 
 /**
  * Phase 2 deliberately wraps the accepted Phase 1 build rather than editing
@@ -13,7 +14,8 @@ import { applyReactionLab } from './reaction-lab-build.mjs';
  */
 export async function buildAppHtml() {
   const phase1Html = await buildPhase1AppHtml();
-  return applyReactionLab(phase1Html);
+  const reactionLabHtml = applyReactionLab(phase1Html);
+  return applyReactionSourceUi(reactionLabHtml);
 }
 
 export async function writeBuiltApp(outputPath = join(PROJECT_ROOT, 'dist', 'index.html')) {
