@@ -55,3 +55,15 @@ test('Phase 2 build adds Reaction Lab beside the preserved Compound Builder', as
   assert.ok(html.includes('function spawnBeakerFX(type)'));
   assert.ok(html.includes('id="reaction-result-box"'));
 });
+
+test('Phase 2 build exposes reaction provenance in the learner-facing UI', async () => {
+  const html = await buildPhase2AppHtml();
+
+  assert.ok(html.includes('id="reactionlab-sources"'));
+  assert.ok(html.includes('const REACTION_SOURCE_DATA ='));
+  assert.ok(html.includes('const REACTION_SOURCE_IDS_BY_REACTION ='));
+  assert.ok(html.includes('function renderReactionLabSources('));
+  assert.ok(html.includes('แหล่งอ้างอิงของปฏิกิริยานี้'));
+  assert.ok(html.includes('target="_blank"'));
+  assert.ok(html.includes('rel="noopener noreferrer"'));
+});
