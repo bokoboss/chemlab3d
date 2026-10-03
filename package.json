@@ -3,7 +3,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "build": "node scripts/build-app.mjs",
+    "build": "node scripts/build-app-phase2.mjs",
     "test": "node --test",
     "test:browser": "playwright test"
   },
