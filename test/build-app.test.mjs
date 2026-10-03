@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import { buildAppHtml as buildCoreAppHtml } from '../scripts/build-app-core.mjs';
 import { buildAppHtml as buildCurrentAppHtml } from '../scripts/build-app.mjs';
 import { applyAccessibilityFoundation } from '../src/features/accessibility/build/index.mjs';
+import { applyMobileUx } from '../src/features/mobile-ux/build/index.mjs';
 import { applyReactionLab } from '../src/features/lab/build/reaction-lab.mjs';
 import { applyReactionSourceUi } from '../src/features/lab/build/reaction-source-ui.mjs';
 import { applyCompoundBuilderSemantics } from '../src/features/lab/build/compound-builder-semantics.mjs';
@@ -45,14 +46,26 @@ test('core build keeps neutral call sites backward-compatible', async () => {
 test('current build orchestration is byte-equivalent to the accepted transform order', async () => {
   const coreHtml = await buildCoreAppHtml();
   const expected = applyAccessibilityFoundation(
-    applyCompoundBuilderSemantics(
-      applyReactionSourceUi(
-        applyReactionLab(coreHtml),
+    applyMobileUx(
+      applyCompoundBuilderSemantics(
+        applyReactionSourceUi(
+          applyReactionLab(coreHtml),
+        ),
       ),
     ),
   );
   const actual = await buildCurrentAppHtml();
   assert.equal(actual, expected);
+});
+
+test('current build adds mobile learning navigation without replacing accepted top-level tabs', async () => {
+  const html = await buildCurrentAppHtml();
+  assert.ok(html.includes('CHEMLAB_MOBILE_UX_STYLE'));
+  assert.ok(html.includes('id="chemlab-mobile-menu-btn"'));
+  assert.ok(html.includes('id="CHEMLAB_MOBILE_PTABLE_NAV"'));
+  assert.ok(html.includes('id="tab-btn-atom"'));
+  assert.ok(html.includes('id="tab-btn-flashcards"'));
+  assert.ok(html.includes('id="ptable-grid-container"'));
 });
 
 test('current build adds Reaction Lab beside the preserved Compound Builder', async () => {

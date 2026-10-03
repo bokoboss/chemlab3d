@@ -5,10 +5,12 @@ import { PROJECT_ROOT } from './baseline.mjs';
 import { buildAppHtml as buildCoreAppHtml } from './build-app-core.mjs';
 import { applyBuildTransforms } from './build-transform-pipeline.mjs';
 import { LAB_BUILD_TRANSFORMS } from '../src/features/lab/build/index.mjs';
+import { MOBILE_UX_BUILD_TRANSFORMS } from '../src/features/mobile-ux/build/index.mjs';
 import { ACCESSIBILITY_BUILD_TRANSFORMS } from '../src/features/accessibility/build/index.mjs';
 
 export const CURRENT_APP_TRANSFORMS = Object.freeze([
   ...LAB_BUILD_TRANSFORMS,
+  ...MOBILE_UX_BUILD_TRANSFORMS,
   ...ACCESSIBILITY_BUILD_TRANSFORMS,
 ]);
 
