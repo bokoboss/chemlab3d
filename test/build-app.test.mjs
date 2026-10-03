@@ -36,3 +36,21 @@ test('Phase 1 build keeps neutral call sites backward-compatible', async () => {
   assert.ok(html.includes('function calculateBohrShells(electronCount, atomicNumber = electronCount)'));
   assert.ok(html.includes('function getSubshellElectronConfig(electronCount, atomicNumber = electronCount)'));
 });
+
+test('Phase 2 build adds Reaction Lab beside the preserved Compound Builder', async () => {
+  const html = await buildAppHtml();
+
+  assert.ok(html.includes('id="sb-mode-reactionlab"'));
+  assert.ok(html.includes("switchSandboxMode('reactionlab')"));
+  assert.ok(html.includes('id="sandbox-view-reactionlab"'));
+  assert.ok(html.includes('Reaction Lab'));
+  assert.ok(html.includes('Compound Builder'));
+  assert.ok(html.includes('const REACTION_LAB_DATA ='));
+  assert.ok(html.includes('function initReactionLab()'));
+  assert.ok(html.includes('function renderReactionLab()'));
+
+  // Existing interactive beaker/effects remain in place rather than being replaced.
+  assert.ok(html.includes('id="beaker-particles-canvas"'));
+  assert.ok(html.includes('function spawnBeakerFX(type)'));
+  assert.ok(html.includes('id="reaction-result-box"'));
+});
