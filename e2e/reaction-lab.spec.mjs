@@ -28,17 +28,17 @@ test('Reaction Lab is distinct from Compound Builder while preserving the origin
   await expect(page.locator('#reaction-result-box')).toBeAttached();
   await attachScreen(page, testInfo, 'phase2-01-compound-builder');
 
-  // Reaction Lab is a distinct mode using balanced reaction records.
+  // Reaction Lab is a distinct mode using balanced, sourced reaction records.
   await page.locator('#sb-mode-reactionlab').click();
   await expect(page.locator('#sandbox-view-reactionlab')).toBeVisible();
   await expect(page.locator('#reactionlab-select option')).toHaveCount(8);
-  await expect(page.locator('#reactionlab-equation')).toHaveText('2H₂ + O₂ → 2H₂O');
+  await expect(page.locator('#reactionlab-equation')).toHaveText('2H₂(g) + O₂(g) → 2H₂O(l)');
   await expect(page.locator('#reactionlab-balance-badge')).toContainText('อะตอมสมดุล');
   await expect(page.locator('#reactionlab-balance-grid')).toContainText('H: 4 = 4');
   await expect(page.locator('#reactionlab-balance-grid')).toContainText('O: 2 = 2');
 
-  // Unknown factual metadata is shown as unknown rather than guessed.
-  await expect(page.locator('#reactionlab-state-status')).toContainText('รอแหล่งอ้างอิง');
+  // Physical states have provenance; unsupported facts remain explicitly unknown.
+  await expect(page.locator('#reactionlab-state-status')).toContainText('มีข้อมูลอ้างอิง');
   await expect(page.locator('#reactionlab-condition-status')).toContainText('รอแหล่งอ้างอิง');
   await expect(page.locator('#reactionlab-catalyst-status')).toContainText('รอแหล่งอ้างอิง');
   await expect(page.locator('#reactionlab-thermo-status')).toContainText('รอแหล่งอ้างอิง');
@@ -46,10 +46,17 @@ test('Reaction Lab is distinct from Compound Builder while preserving the origin
 
   // Switching reactions updates the balanced equation from the validated library.
   await page.locator('#reactionlab-select').selectOption('methane-combustion');
-  await expect(page.locator('#reactionlab-equation')).toHaveText('CH₄ + 2O₂ → CO₂ + 2H₂O');
+  await expect(page.locator('#reactionlab-equation')).toHaveText('CH₄(g) + 2O₂(g) → CO₂(g) + 2H₂O(g)');
   await expect(page.locator('#reactionlab-balance-grid')).toContainText('C: 1 = 1');
   await expect(page.locator('#reactionlab-balance-grid')).toContainText('H: 4 = 4');
   await expect(page.locator('#reactionlab-balance-grid')).toContainText('O: 4 = 4');
+
+  // A reaction with a sourced condition exposes it, while catalyst/thermochemistry stay unknown.
+  await page.locator('#reactionlab-select').selectOption('calcium-carbonate-decomposition');
+  await expect(page.locator('#reactionlab-equation')).toHaveText('CaCO₃(s) → CaO(s) + CO₂(g)');
+  await expect(page.locator('#reactionlab-condition-status')).toContainText('thermal decomposition');
+  await expect(page.locator('#reactionlab-catalyst-status')).toContainText('รอแหล่งอ้างอิง');
+  await expect(page.locator('#reactionlab-thermo-status')).toContainText('รอแหล่งอ้างอิง');
 
   // Symbolic preview keeps the satisfying feedback but does not replace chemistry truth.
   const visualStage = page.locator('#reactionlab-visual-stage');
