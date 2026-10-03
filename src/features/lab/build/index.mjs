@@ -1,14 +1,13 @@
 import { applyReactionLab } from './reaction-lab.mjs';
 import { applyReactionSourceUi } from './reaction-source-ui.mjs';
-import { applyCompoundBuilderSemantics } from '../../../../scripts/compound-builder-semantics-build.mjs';
+import { applyCompoundBuilderSemantics } from './compound-builder-semantics.mjs';
 
 /**
- * Transitional Phase 3 feature boundary.
+ * Phase 3 Lab build boundary.
  *
- * The build orchestrator imports the Lab feature as one unit. Implementations
- * migrate behind this boundary one seam at a time; compatibility shims keep
- * existing imports working while browser and byte-equivalence gates protect
- * the learner experience.
+ * The current app imports the Lab feature as one unit. All three Lab build
+ * adapters now live behind this feature boundary; compatibility shims keep
+ * historical script imports working during the remainder of Phase 3.
  */
 export const LAB_BUILD_TRANSFORMS = Object.freeze([
   applyReactionLab,
