@@ -4,20 +4,16 @@ import { dirname, join, resolve } from 'node:path';
 import { PROJECT_ROOT } from './baseline.mjs';
 import { buildAppHtml as buildCoreAppHtml } from './build-app-core.mjs';
 import { applyBuildTransforms } from './build-transform-pipeline.mjs';
-import { applyReactionLab } from './reaction-lab-build.mjs';
-import { applyReactionSourceUi } from './reaction-source-ui-build.mjs';
-import { applyCompoundBuilderSemantics } from './compound-builder-semantics-build.mjs';
+import { LAB_BUILD_TRANSFORMS } from '../src/features/lab/build/index.mjs';
 
 export const CURRENT_APP_TRANSFORMS = Object.freeze([
-  applyReactionLab,
-  applyReactionSourceUi,
-  applyCompoundBuilderSemantics,
+  ...LAB_BUILD_TRANSFORMS,
 ]);
 
 /**
  * Stable current-app build entrypoint.
  *
- * Phase-specific implementation details stay behind this boundary so npm,
+ * Phase-specific implementation details stay behind feature boundaries so npm,
  * browser tests, deployment and future refactors do not need to know which
  * historical phase introduced a transform. Transform order is explicit and
  * byte-equivalence tested.
