@@ -42,14 +42,23 @@ test('Reaction Lab is distinct from Compound Builder while preserving the origin
   await expect(page.locator('#reactionlab-condition-status')).toContainText('รอแหล่งอ้างอิง');
   await expect(page.locator('#reactionlab-catalyst-status')).toContainText('รอแหล่งอ้างอิง');
   await expect(page.locator('#reactionlab-thermo-status')).toContainText('รอแหล่งอ้างอิง');
+
+  const sourceLinks = page.locator('#reactionlab-sources a');
+  await expect(sourceLinks).toHaveCount(1);
+  await expect(sourceLinks.first()).toContainText('Chemistry LibreTexts');
+  await expect(sourceLinks.first()).toHaveAttribute('href', /chem\.libretexts\.org/);
+  await expect(sourceLinks.first()).toHaveAttribute('target', '_blank');
+  await expect(sourceLinks.first()).toHaveAttribute('rel', 'noopener noreferrer');
   await attachScreen(page, testInfo, 'phase2-02-reaction-lab');
 
-  // Switching reactions updates the balanced equation from the validated library.
+  // Switching reactions updates the balanced equation and its source from the validated library.
   await page.locator('#reactionlab-select').selectOption('methane-combustion');
   await expect(page.locator('#reactionlab-equation')).toHaveText('CH₄(g) + 2O₂(g) → CO₂(g) + 2H₂O(g)');
   await expect(page.locator('#reactionlab-balance-grid')).toContainText('C: 1 = 1');
   await expect(page.locator('#reactionlab-balance-grid')).toContainText('H: 4 = 4');
   await expect(page.locator('#reactionlab-balance-grid')).toContainText('O: 4 = 4');
+  await expect(page.locator('#reactionlab-sources')).toContainText('OpenStax');
+  await expect(page.locator('#reactionlab-sources a').first()).toHaveAttribute('href', /openstax\.org/);
 
   // A reaction with a sourced condition exposes it, while catalyst/thermochemistry stay unknown.
   await page.locator('#reactionlab-select').selectOption('calcium-carbonate-decomposition');
