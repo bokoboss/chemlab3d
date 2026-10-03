@@ -11,6 +11,22 @@ function replaceRegexOnce(source, regex, replacement, label) {
   return source.replace(regex, replacement);
 }
 
+function clarifyLevelFilterScope(html) {
+  html = replaceRegexOnce(
+    html,
+    /<div class="level-bar">/,
+    `<div class="level-bar" role="group" aria-labelledby="chemlab-level-filter-label" aria-describedby="chemlab-level-filter-scope" title="กรองเฉพาะรายการโมเลกุลในแท็บโมเลกุล 3D">\n        <span id="chemlab-level-filter-scope" class="chemlab-sr-only">ตัวกรองนี้มีผลเฉพาะรายการโมเลกุลในแท็บโมเลกุล 3D ไม่ได้เปลี่ยนเนื้อหาทั้งแอป</span>`,
+    'level filter group',
+  );
+  html = replaceRegexOnce(
+    html,
+    /<span class="level-label">ชั้น:<\/span>/,
+    '<span class="level-label" id="chemlab-level-filter-label">กรองโมเลกุล:</span>',
+    'level filter label',
+  );
+  return html;
+}
+
 function buildAccessibilityStyles() {
   return `<style id="${STYLE_MARKER}">
   .chemlab-skip-link {
@@ -29,6 +45,17 @@ function buildAccessibilityStyles() {
     transition: transform 0.16s ease;
   }
   .chemlab-skip-link:focus-visible { transform: translateY(0); }
+  .chemlab-sr-only {
+    position: absolute !important;
+    width: 1px !important;
+    height: 1px !important;
+    padding: 0 !important;
+    margin: -1px !important;
+    overflow: hidden !important;
+    clip: rect(0, 0, 0, 0) !important;
+    white-space: nowrap !important;
+    border: 0 !important;
+  }
   :where(a, button, input, select, textarea, summary, [tabindex], [role="button"], [role="tab"]):focus-visible {
     outline: 3px solid var(--accent-cyan, #00f0ff);
     outline-offset: 3px;
@@ -51,7 +78,9 @@ function buildAccessibilityRuntime() {
 (() => {
   const FOCUSABLE = 'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), summary, [tabindex]:not([tabindex="-1"])';
   const DIALOG_SELECTOR = '.modal-overlay[id], [id$="-modal"]';
+  const HORIZONTAL_SCROLL_SELECTOR = '.nav-tabs, #tab-ptable, .ptable-grid, .tool-group, .info-bar, .sandbox-presets';
   const dialogState = new WeakMap();
+  let scrollRefreshQueued = false;
 
   function isVisible(element) {
     if (!element || element.hidden) return false;
@@ -82,6 +111,73 @@ function buildAccessibilityRuntime() {
         event.preventDefault();
         element.click();
       });
+    });
+  }
+
+  function syncLevelFilterState() {
+    document.querySelectorAll('.level-pill').forEach(button => {
+      button.setAttribute('aria-pressed', button.classList.contains('active') ? 'true' : 'false');
+      button.setAttribute('aria-controls', 'molecule-list-container');
+    });
+  }
+
+  function horizontalScrollLabel(element) {
+    if (element.classList.contains('nav-tabs')) return 'แถบนำทางหลักที่เลื่อนได้ในแนวนอน';
+    if (element.id === 'tab-ptable' || element.classList.contains('ptable-grid')) return 'ตารางธาตุที่เลื่อนได้ในแนวนอน';
+    if (element.classList.contains('tool-group')) return 'แถบเครื่องมือโมเลกุลที่เลื่อนได้ในแนวนอน';
+    if (element.classList.contains('info-bar')) return 'ข้อมูลโมเลกุลที่เลื่อนได้ในแนวนอน';
+    if (element.classList.contains('sandbox-presets')) return 'ชุดการทดลองตัวอย่างที่เลื่อนได้ในแนวนอน';
+    return 'พื้นที่เนื้อหาที่เลื่อนได้ในแนวนอน';
+  }
+
+  function removeOwnedScrollSemantics(element) {
+    if (element.dataset.chemlabAddedTabindex === 'true') element.removeAttribute('tabindex');
+    if (element.dataset.chemlabAddedRole === 'true') element.removeAttribute('role');
+    if (element.dataset.chemlabAddedLabel === 'true') element.removeAttribute('aria-label');
+    delete element.dataset.chemlabAddedTabindex;
+    delete element.dataset.chemlabAddedRole;
+    delete element.dataset.chemlabAddedLabel;
+    delete element.dataset.chemlabScrollRegion;
+  }
+
+  function enhanceHorizontalScrollRegions() {
+    document.querySelectorAll(HORIZONTAL_SCROLL_SELECTOR).forEach(element => {
+      const scrollable = isVisible(element) && element.scrollWidth > element.clientWidth + 1;
+      if (!scrollable) {
+        if (element.dataset.chemlabScrollRegion === 'true') removeOwnedScrollSemantics(element);
+        return;
+      }
+
+      element.dataset.chemlabScrollRegion = 'true';
+      if (!element.hasAttribute('tabindex')) {
+        element.tabIndex = 0;
+        element.dataset.chemlabAddedTabindex = 'true';
+      }
+      if (!element.hasAttribute('role') && element.tagName !== 'NAV') {
+        element.setAttribute('role', 'region');
+        element.dataset.chemlabAddedRole = 'true';
+      }
+      if (!element.hasAttribute('aria-label') && !element.hasAttribute('aria-labelledby')) {
+        element.setAttribute('aria-label', horizontalScrollLabel(element));
+        element.dataset.chemlabAddedLabel = 'true';
+      }
+      if (element.dataset.chemlabScrollKeyboardReady === 'true') return;
+      element.dataset.chemlabScrollKeyboardReady = 'true';
+      element.addEventListener('keydown', event => {
+        if (event.target !== element || (event.key !== 'ArrowLeft' && event.key !== 'ArrowRight')) return;
+        event.preventDefault();
+        const direction = event.key === 'ArrowRight' ? 1 : -1;
+        element.scrollBy({ left: direction * Math.max(80, element.clientWidth * 0.75), behavior: 'auto' });
+      });
+    });
+  }
+
+  function queueHorizontalScrollRefresh() {
+    if (scrollRefreshQueued) return;
+    scrollRefreshQueued = true;
+    requestAnimationFrame(() => {
+      scrollRefreshQueued = false;
+      enhanceHorizontalScrollRegions();
     });
   }
 
@@ -175,21 +271,30 @@ function buildAccessibilityRuntime() {
   function enhance() {
     ensureSkipTarget();
     enhanceClickableElements();
+    syncLevelFilterState();
     syncDialogs();
+    queueHorizontalScrollRefresh();
   }
 
   document.addEventListener('DOMContentLoaded', enhance, { once: true });
   if (document.readyState !== 'loading') enhance();
+  window.addEventListener('resize', queueHorizontalScrollRefresh, { passive: true });
 
   const observer = new MutationObserver(mutations => {
     let needsInteractiveRefresh = false;
+    let needsStateSync = false;
     let needsDialogSync = false;
+    let needsScrollRefresh = false;
     for (const mutation of mutations) {
       if (mutation.type === 'childList') needsInteractiveRefresh = true;
+      if (mutation.type === 'attributes' && mutation.target.classList && mutation.target.classList.contains('level-pill')) needsStateSync = true;
       if (mutation.type === 'childList' || mutation.type === 'attributes') needsDialogSync = true;
+      if (mutation.type === 'childList' || (mutation.type === 'attributes' && (mutation.attributeName === 'style' || mutation.attributeName === 'class' || mutation.attributeName === 'hidden'))) needsScrollRefresh = true;
     }
     if (needsInteractiveRefresh) enhanceClickableElements();
+    if (needsInteractiveRefresh || needsStateSync) syncLevelFilterState();
     if (needsDialogSync) syncDialogs();
+    if (needsScrollRefresh) queueHorizontalScrollRefresh();
   });
   observer.observe(document.documentElement, { subtree: true, childList: true, attributes: true, attributeFilter: ['style', 'class', 'hidden'] });
 })();
@@ -201,6 +306,7 @@ export function applyAccessibilityFoundation(html) {
     throw new Error('accessibility foundation already applied');
   }
 
+  html = clarifyLevelFilterScope(html);
   html = replaceRegexOnce(html, /<\/head>/i, `${buildAccessibilityStyles()}\n</head>`, 'accessibility style injection');
   html = replaceRegexOnce(
     html,
