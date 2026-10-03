@@ -2,9 +2,9 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { buildAppHtml as buildCoreAppHtml } from '../scripts/build-app-core.mjs';
 import { buildAppHtml as buildCurrentAppHtml } from '../scripts/build-app.mjs';
-import { applyReactionLab } from '../scripts/reaction-lab-build.mjs';
-import { applyReactionSourceUi } from '../scripts/reaction-source-ui-build.mjs';
-import { applyCompoundBuilderSemantics } from '../scripts/compound-builder-semantics-build.mjs';
+import { applyReactionLab } from '../src/features/lab/build/reaction-lab.mjs';
+import { applyReactionSourceUi } from '../src/features/lab/build/reaction-source-ui.mjs';
+import { applyCompoundBuilderSemantics } from '../src/features/lab/build/compound-builder-semantics.mjs';
 
 const EXPERIENCE_MARKERS = [
   'id="tab-atom"',
