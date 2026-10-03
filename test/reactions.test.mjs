@@ -60,25 +60,48 @@ test('formats a balanced equation without showing coefficient 1', () => {
   assert.equal(formatReactionEquation(reaction), '2H₂ + O₂ → 2H₂O');
 });
 
-test('formats optional physical states but does not require them', () => {
+test('formats sourced optional physical states but does not require states', () => {
   const reaction = makeReaction(waterFormation({
     reactants: [
-      { formula: 'H2', coefficient: 2, state: 'g' },
-      { formula: 'O2', coefficient: 1, state: 'g' },
+      { formula: 'H2', coefficient: 2, state: 'g', stateSource: 'SOURCE-ID' },
+      { formula: 'O2', coefficient: 1, state: 'g', stateSource: 'SOURCE-ID' },
     ],
     products: [
-      { formula: 'H2O', coefficient: 2, state: 'l' },
+      { formula: 'H2O', coefficient: 2, state: 'l', stateSource: 'SOURCE-ID' },
     ],
   }));
 
   assert.equal(formatReactionEquation(reaction), '2H₂(g) + O₂(g) → 2H₂O(l)');
+  assert.equal(reaction.reactants[0].stateSource, 'SOURCE-ID');
+});
+
+test('physical-state claims require provenance', () => {
+  assert.throws(
+    () => makeReaction(waterFormation({
+      reactants: [
+        { formula: 'H2', coefficient: 2, state: 'g' },
+        { formula: 'O2', coefficient: 1 },
+      ],
+    })),
+    /stateSource|source/i,
+  );
+
+  assert.throws(
+    () => makeReaction(waterFormation({
+      reactants: [
+        { formula: 'H2', coefficient: 2, stateSource: 'SOURCE-ID' },
+        { formula: 'O2', coefficient: 1 },
+      ],
+    })),
+    /stateSource|state/i,
+  );
 });
 
 test('rejects unsupported physical-state labels', () => {
   assert.throws(
     () => makeReaction(waterFormation({
       reactants: [
-        { formula: 'H2', coefficient: 2, state: 'gas' },
+        { formula: 'H2', coefficient: 2, state: 'gas', stateSource: 'SOURCE-ID' },
         { formula: 'O2', coefficient: 1 },
       ],
     })),
