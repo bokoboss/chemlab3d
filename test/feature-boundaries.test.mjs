@@ -1,7 +1,9 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { LAB_BUILD_TRANSFORMS } from '../src/features/lab/build/index.mjs';
+import { applyReactionLab as featureReactionLab } from '../src/features/lab/build/reaction-lab.mjs';
 import { applyReactionSourceUi as featureReactionSourceUi } from '../src/features/lab/build/reaction-source-ui.mjs';
+import { applyReactionLab as compatibilityReactionLab } from '../scripts/reaction-lab-build.mjs';
 import { applyReactionSourceUi as compatibilityReactionSourceUi } from '../scripts/reaction-source-ui-build.mjs';
 import { CURRENT_APP_TRANSFORMS } from '../scripts/build-app.mjs';
 
@@ -17,7 +19,9 @@ test('current app consumes Lab transforms through the feature boundary', () => {
   assert.deepEqual(CURRENT_APP_TRANSFORMS, LAB_BUILD_TRANSFORMS);
 });
 
-test('reaction source UI implementation lives behind the Lab boundary while the old path remains a compatibility shim', () => {
+test('Reaction Lab implementations live behind the Lab boundary while old paths remain compatibility shims', () => {
+  assert.equal(compatibilityReactionLab, featureReactionLab);
   assert.equal(compatibilityReactionSourceUi, featureReactionSourceUi);
+  assert.equal(LAB_BUILD_TRANSFORMS[0], featureReactionLab);
   assert.equal(LAB_BUILD_TRANSFORMS[1], featureReactionSourceUi);
 });

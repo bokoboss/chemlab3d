@@ -1,4 +1,4 @@
-import { applyReactionLab } from '../../../../scripts/reaction-lab-build.mjs';
+import { applyReactionLab } from './reaction-lab.mjs';
 import { applyReactionSourceUi } from './reaction-source-ui.mjs';
 import { applyCompoundBuilderSemantics } from '../../../../scripts/compound-builder-semantics-build.mjs';
 
