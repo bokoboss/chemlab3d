@@ -1,5 +1,5 @@
-import { REACTION_LIBRARY } from '../src/data/reactions.mjs';
-import { REACTION_SOURCES } from '../src/data/reaction-sources.mjs';
+import { REACTION_LIBRARY } from '../../../data/reactions.mjs';
+import { REACTION_SOURCES } from '../../../data/reaction-sources.mjs';
 
 function countOccurrences(source, needle) {
   if (!needle) return 0;

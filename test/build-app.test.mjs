@@ -1,7 +1,10 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { buildAppHtml as buildPhase1AppHtml } from '../scripts/build-app.mjs';
-import { buildAppHtml as buildPhase2AppHtml } from '../scripts/build-app-phase2.mjs';
+import { buildAppHtml as buildCoreAppHtml } from '../scripts/build-app-core.mjs';
+import { buildAppHtml as buildCurrentAppHtml } from '../scripts/build-app.mjs';
+import { applyReactionLab } from '../src/features/lab/build/reaction-lab.mjs';
+import { applyReactionSourceUi } from '../src/features/lab/build/reaction-source-ui.mjs';
+import { applyCompoundBuilderSemantics } from '../src/features/lab/build/compound-builder-semantics.mjs';
 
 const EXPERIENCE_MARKERS = [
   'id="tab-atom"',
@@ -14,8 +17,8 @@ const EXPERIENCE_MARKERS = [
   'toggleIsomerSuperimpose()',
 ];
 
-test('Phase 1 build preserves accepted experience while replacing legacy electron logic', async () => {
-  const html = await buildPhase1AppHtml();
+test('core build preserves accepted experience while replacing legacy electron logic', async () => {
+  const html = await buildCoreAppHtml();
 
   for (const marker of EXPERIENCE_MARKERS) {
     assert.ok(html.includes(marker), `missing preserved experience marker: ${marker}`);
@@ -32,14 +35,25 @@ test('Phase 1 build preserves accepted experience while replacing legacy electro
   assert.ok(html.includes('renderOrbitalDiagram(atomState.e, atomState.p)'));
 });
 
-test('Phase 1 build keeps neutral call sites backward-compatible', async () => {
-  const html = await buildPhase1AppHtml();
+test('core build keeps neutral call sites backward-compatible', async () => {
+  const html = await buildCoreAppHtml();
   assert.ok(html.includes('function calculateBohrShells(electronCount, atomicNumber = electronCount)'));
   assert.ok(html.includes('function getSubshellElectronConfig(electronCount, atomicNumber = electronCount)'));
 });
 
-test('Phase 2 build adds Reaction Lab beside the preserved Compound Builder', async () => {
-  const html = await buildPhase2AppHtml();
+test('current build orchestration is byte-equivalent to the accepted transform order', async () => {
+  const coreHtml = await buildCoreAppHtml();
+  const expected = applyCompoundBuilderSemantics(
+    applyReactionSourceUi(
+      applyReactionLab(coreHtml),
+    ),
+  );
+  const actual = await buildCurrentAppHtml();
+  assert.equal(actual, expected);
+});
+
+test('current build adds Reaction Lab beside the preserved Compound Builder', async () => {
+  const html = await buildCurrentAppHtml();
 
   assert.ok(html.includes('id="sb-mode-reactionlab"'));
   assert.ok(html.includes("switchSandboxMode('reactionlab')"));
@@ -61,8 +75,8 @@ test('Phase 2 build adds Reaction Lab beside the preserved Compound Builder', as
   assert.ok(html.includes('id="cond-cat"'));
 });
 
-test('Phase 2 keeps the wow-factor while removing reaction claims from Compound Builder', async () => {
-  const html = await buildPhase2AppHtml();
+test('current build keeps the wow-factor while removing reaction claims from Compound Builder', async () => {
+  const html = await buildCurrentAppHtml();
 
   assert.ok(html.includes('Compound Builder — แบบจำลองการประกอบสูตร'));
   assert.ok(html.includes('ไม่ใช่การจำลองว่าธาตุเหล่านี้ทำปฏิกิริยากันจริง'));
@@ -78,8 +92,8 @@ test('Phase 2 keeps the wow-factor while removing reaction claims from Compound 
   assert.equal(html.includes('deltaEN: "1.0"'), false);
 });
 
-test('Phase 2 report is a working Compound Builder worksheet, not an unsourced reaction report', async () => {
-  const html = await buildPhase2AppHtml();
+test('current report is a working Compound Builder worksheet, not an unsourced reaction report', async () => {
+  const html = await buildCurrentAppHtml();
 
   assert.ok(html.includes('📋 ใบงาน Compound Builder (ChemLab 3D)'));
   assert.ok(html.includes('ยังไม่ใช่เอกสารรับรองหลักสูตร'));
@@ -92,8 +106,8 @@ test('Phase 2 report is a working Compound Builder worksheet, not an unsourced r
   assert.equal(html.includes('สมการเคมีที่เกิดขึ้น:'), false);
 });
 
-test('Phase 2 collection and quests keep gamification without claiming physical synthesis/discovery', async () => {
-  const html = await buildPhase2AppHtml();
+test('current collection and quests keep gamification without claiming physical synthesis/discovery', async () => {
+  const html = await buildCurrentAppHtml();
 
   assert.ok(html.includes('คลังสารที่ปลดล็อก (Collection)'));
   assert.ok(html.includes('สมุดสะสมสารประกอบ (Compound Collection)'));

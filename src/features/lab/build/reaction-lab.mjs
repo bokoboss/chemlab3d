@@ -1,5 +1,5 @@
-import { REACTION_LIBRARY } from '../src/data/reactions.mjs';
-import { formatReactionEquation, reactionBalance } from '../src/chemistry/reactions.mjs';
+import { REACTION_LIBRARY } from '../../../data/reactions.mjs';
+import { formatReactionEquation, reactionBalance } from '../../../chemistry/reactions.mjs';
 
 function countOccurrences(source, needle) {
   if (!needle) return 0;
