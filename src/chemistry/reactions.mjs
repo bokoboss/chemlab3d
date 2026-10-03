@@ -14,6 +14,13 @@ function requireNonEmptyString(value, fieldName) {
   return value.trim();
 }
 
+function normalizeSources(sources) {
+  if (!Array.isArray(sources) || sources.length === 0) {
+    throw new TypeError('Reaction identity/equation requires at least one source.');
+  }
+  return Object.freeze(sources.map((source, index) => requireNonEmptyString(source, `reaction.sources[${index}]`)));
+}
+
 function normalizeCoefficient(value) {
   if (!Number.isSafeInteger(value) || value <= 0) {
     throw new TypeError('Reaction coefficient must be a positive integer.');
@@ -135,6 +142,7 @@ export function reactionBalance(reaction) {
 
 export function makeReaction({
   id,
+  sources,
   reactants,
   products,
   conditions = null,
@@ -144,6 +152,7 @@ export function makeReaction({
 } = {}) {
   const normalized = {
     id: requireNonEmptyString(id, 'reaction.id'),
+    sources: normalizeSources(sources),
     reactants: normalizeSide(reactants, 'reactants'),
     products: normalizeSide(products, 'products'),
     conditions: normalizeConditions(conditions),
