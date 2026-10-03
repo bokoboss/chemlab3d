@@ -4,6 +4,8 @@ import { dirname, join, resolve } from 'node:path';
 import { PROJECT_ROOT, restoreAcceptedBaseline } from './baseline.mjs';
 
 const ELECTRON_CORE_PATH = join(PROJECT_ROOT, 'src', 'chemistry', 'electron-config.mjs');
+const COMPOSITION_CORE_PATH = join(PROJECT_ROOT, 'src', 'chemistry', 'composition.mjs');
+const REACTION_FACTS_CORE_PATH = join(PROJECT_ROOT, 'src', 'chemistry', 'reaction-facts.mjs');
 
 function countOccurrences(source, needle) {
   if (!needle) return 0;
@@ -36,11 +38,32 @@ function toClassicBrowserSource(moduleSource) {
 export async function buildAppHtml() {
   let html = (await restoreAcceptedBaseline()).toString('utf8');
   const electronCore = toClassicBrowserSource(await readFile(ELECTRON_CORE_PATH, 'utf8'));
+  const compositionCore = toClassicBrowserSource(await readFile(COMPOSITION_CORE_PATH, 'utf8'));
+  const reactionFactsCore = toClassicBrowserSource(await readFile(REACTION_FACTS_CORE_PATH, 'utf8'));
 
   const coreAnchor = '  // GLOBAL BOHR SHELL CALCULATOR (Accessible Everywhere)';
+  const presentationHelpers = `  function formatThermochemistryForResult(thermochemistry) {
+    if (!thermochemistry || thermochemistry.status !== 'known') {
+      return 'ไม่มีข้อมูลเทอร์โมเคมีของปฏิกิริยาเฉพาะ';
+    }
+    const labels = {
+      exothermic: 'คายความร้อน (Exothermic)',
+      endothermic: 'ดูดความร้อน (Endothermic)',
+      thermoneutral: 'เทอร์โมนิวทรัล (Thermoneutral)',
+    };
+    return \`${'${labels[thermochemistry.type]}'} — ΔH = ${'${thermochemistry.enthalpyKJMol}'} kJ/mol\`;
+  }`;
+
   const injectedCore = [
     '  // CHEMLAB_CHEMISTRY_CORE_BEGIN — generated from tested domain modules',
     electronCore.split('\n').map((line) => `  ${line}`).join('\n'),
+    '  // CHEMLAB_COMPOSITION_CORE_BEGIN',
+    compositionCore.split('\n').map((line) => `  ${line}`).join('\n'),
+    '  // CHEMLAB_COMPOSITION_CORE_END',
+    '  // CHEMLAB_REACTION_FACTS_CORE_BEGIN',
+    reactionFactsCore.split('\n').map((line) => `  ${line}`).join('\n'),
+    '  // CHEMLAB_REACTION_FACTS_CORE_END',
+    presentationHelpers,
     '  // CHEMLAB_CHEMISTRY_CORE_END',
     '',
     coreAnchor,
@@ -96,6 +119,176 @@ export async function buildAppHtml() {
   html = replaceExpected(html, 'if (num >= 18) noble =', 'if (electronCount >= 18) noble =', 1, 'argon core label');
   html = replaceExpected(html, 'else if (num >= 10) noble =', 'else if (electronCount >= 10) noble =', 1, 'neon core label');
   html = replaceExpected(html, 'else if (num >= 2) noble =', 'else if (electronCount >= 2) noble =', 1, 'helium core label');
+
+  const renderAtomCompositionCounter = `      const countMap = {};
+      mol.atoms.forEach(a => {
+        countMap[a.elem] = (countMap[a.elem] || 0) + 1;
+      });`;
+
+  html = replaceExpected(
+    html,
+    renderAtomCompositionCounter,
+    '      const countMap = parseFormula(mol.formula);',
+    2,
+    'synthesis formula composition source',
+  );
+
+  const legacyThermometer = `    const temp = isIonic ? 450 : (isGas ? 95 : 180);
+    document.getElementById('thermo-fill-el').style.width = '85%';
+    document.getElementById('thermo-temp-text').innerText = \`${'${temp}'}°C\`;`;
+
+  const hardenedThermometer = `    const reactionFacts = makeReactionFacts(mol.reactionFacts || {});
+    const thermochemistry = describeThermochemistry(reactionFacts);
+    const thermochemistrySummary = thermochemistry.status === 'known'
+      ? formatThermochemistryForResult(thermochemistry)
+      : 'ไม่มีข้อมูลเทอร์โมเคมีของปฏิกิริยาเฉพาะ';
+    const thermoFill = document.getElementById('thermo-fill-el');
+    const thermoTempText = document.getElementById('thermo-temp-text');
+    if (reactionFacts.temperatureC === null) {
+      if (thermoFill) thermoFill.style.width = '0%';
+      if (thermoTempText) thermoTempText.innerText = 'ไม่ระบุ';
+    } else {
+      const displayPercent = Math.max(0, Math.min(100, (reactionFacts.temperatureC / 500) * 100));
+      if (thermoFill) thermoFill.style.width = \`${'${displayPercent}'}%\`;
+      if (thermoTempText) thermoTempText.innerText = \`${'${reactionFacts.temperatureC}'}°C\`;
+    }`;
+
+  html = replaceExpected(
+    html,
+    legacyThermometer,
+    hardenedThermometer,
+    1,
+    'synthesis thermochemistry facts',
+  );
+
+  html = replaceExpected(
+    html,
+    '<span class="detail-val" style="color:var(--accent-rose);">คายความร้อน (Exothermic, ΔH < 0)</span>',
+    '<span class="detail-val" style="color:var(--accent-rose);">${thermochemistrySummary}</span>',
+    1,
+    'synthesis thermochemistry presentation',
+  );
+
+  const compositionFormatter = `  function formatEquation(elemMap, mol) {
+    const composition = Object.entries(elemMap)
+      .map(([sym, count]) => \`${'${sym}'}:${'${count}'}\`)
+      .join(' • ');
+    return \`สัดส่วนองค์ประกอบ: ${'${composition}'} &nbsp;|&nbsp; สูตรที่ได้: <b>${'${mol.formula}'}</b>\`;
+  }`;
+
+  html = replaceSection(
+    html,
+    '  function formatEquation(elemMap, mol) {',
+    '  function viewSynthesizedIn3D(moleculeId) {',
+    compositionFormatter,
+    'compound-builder result formatter',
+  );
+
+  html = replaceExpected(
+    html,
+    '    const neutrons = Math.max(0, Math.round(elem.mass) - elem.num);',
+    "    const neutronNotice = 'จำนวนนิวตรอนขึ้นกับไอโซโทป';",
+    1,
+    'periodic-table neutron semantics',
+  );
+  html = replaceExpected(
+    html,
+    '<span><span style="color:#38bdf8; font-weight:bold;">●</span> นิวตรอน: <b>${neutrons}</b> n⁰</span>',
+    '<span><span style="color:#38bdf8; font-weight:bold;">●</span> นิวตรอน: <b>${neutronNotice}</b></span>',
+    1,
+    'periodic-table neutron display',
+  );
+  html = replaceExpected(
+    html,
+    '          <span><span style="color:#fbbf24; font-weight:bold;">●</span> อิเล็กตรอน: <b>${elem.num}</b> e⁻</span>\n        </div>\n      </div>',
+    '          <span><span style="color:#fbbf24; font-weight:bold;">●</span> อิเล็กตรอน: <b>${elem.num}</b> e⁻</span>\n        </div>\n        <div style="margin-top:0.45rem; font-size:0.7rem; color:var(--text-dim); text-align:center;">ℹ️ ภาพนิวเคลียสเป็นแผนภาพเชิงสัญลักษณ์ ไม่ได้แทนจำนวน n จริง; ต้องระบุเลขมวลของไอโซโทปก่อนจึงคำนวณนิวตรอนได้</div>\n      </div>',
+    1,
+    'periodic-table isotope disclaimer',
+  );
+  html = replaceExpected(
+    html,
+    'onclick="openInAtomStudio(${elem.num}, ${elem.mass})"',
+    'onclick="openInAtomStudio(${elem.num})"',
+    1,
+    'Atom Studio launch without inferred isotope',
+  );
+
+  const legacyNucleusCounts = `      const pCount = el.num;
+      const nCount = Math.max(0, Math.round(el.mass) - el.num);
+      const totalNucleons = pCount + nCount;
+      const nucleusRadius = Math.min(22, Math.max(12, Math.sqrt(totalNucleons) * 2.2));`;
+
+  const schematicNucleusCounts = `      const pCount = el.num;
+      // Schematic nucleus only: the periodic-table record does not identify a nuclide.
+      // Radius/dots preserve the visual treatment without encoding a fabricated neutron count.
+      const schematicNucleons = Math.max(2, pCount * 2);
+      const nucleusRadius = Math.min(22, Math.max(12, Math.sqrt(schematicNucleons) * 2.2));`;
+
+  html = replaceExpected(
+    html,
+    legacyNucleusCounts,
+    schematicNucleusCounts,
+    1,
+    'periodic-table schematic nucleus',
+  );
+  html = replaceExpected(
+    html,
+    'const maxDrawNucleons = Math.min(24, totalNucleons);',
+    'const maxDrawNucleons = Math.min(24, schematicNucleons);',
+    1,
+    'schematic nucleon rendering',
+  );
+
+  const atomStudioLaunch = `  function openInAtomStudio(num) {
+    closeElemModal();
+    atomState.p = num;
+    atomState.n = 0;
+    atomState.e = num;
+    switchTab('atom');
+    setTimeout(() => {
+      updateAtomUI();
+      drawAtomCanvas();
+      const stabTitle = document.getElementById('stability-title');
+      const stabDesc = document.getElementById('stability-desc');
+      if (stabTitle) {
+        stabTitle.style.color = 'var(--accent-cyan)';
+        stabTitle.innerHTML = '🧪 เลือกไอโซโทปใน Atom Studio';
+      }
+      if (stabDesc) {
+        stabDesc.innerText = 'ตั้งค่าโปรตอนและอิเล็กตรอนตามธาตุแล้ว แต่ยังไม่กำหนดจำนวนนิวตรอน กรุณาปรับ n⁰ เพื่อเลือกเลขมวล/ไอโซโทปที่ต้องการศึกษา';
+      }
+    }, 80);
+  }`;
+
+  html = replaceSection(
+    html,
+    '  function openInAtomStudio(num, mass) {',
+    '  function closeElemModal(e) {',
+    atomStudioLaunch,
+    'Atom Studio isotope-safe launch',
+  );
+
+  const stabilityModel = `    const inSimpleBand = (atomState.p <= 20 && npRatio >= 0.8 && npRatio <= 1.25) || (atomState.p > 20 && npRatio >= 1.0 && npRatio <= 1.55);
+    const stabTitle = document.getElementById('stability-title');
+    const stabDesc = document.getElementById('stability-desc');
+
+    if (inSimpleBand) {
+      stabTitle.style.color = 'var(--accent-emerald)';
+      stabTitle.innerHTML = '🧭 แนวโน้มตามแบบจำลองอย่างง่าย: อยู่ในช่วง Band of Stability';
+      stabDesc.innerText = \`n/p = ${'${npRatio.toFixed(2)}'} อยู่ในช่วงแนวโน้มของแบบจำลอง n/p อย่างง่าย ใช้เพื่อสังเกตแนวโน้มเท่านั้น ไม่ใช่การยืนยันว่าไอโซโทปเสถียรหรือกัมมันตรังสี; การสรุปจริงต้องอ้างอิงข้อมูลนิวไคลด์และการสลายตัว\`;
+    } else {
+      stabTitle.style.color = 'var(--accent-amber)';
+      stabTitle.innerHTML = '🧭 แนวโน้มตามแบบจำลองอย่างง่าย: อยู่นอกช่วง Band of Stability';
+      stabDesc.innerText = \`n/p = ${'${npRatio.toFixed(2)}'} อยู่นอกช่วงแนวโน้มของแบบจำลอง n/p อย่างง่าย ใช้เพื่อสังเกตแนวโน้มเท่านั้น ไม่ใช่การยืนยันว่าไอโซโทปเสถียรหรือกัมมันตรังสี; การสรุปจริงต้องอ้างอิงข้อมูลนิวไคลด์และการสลายตัว\`;
+    }`;
+
+  html = replaceSection(
+    html,
+    '    const isStable = (atomState.p <= 20 && npRatio >= 0.8 && npRatio <= 1.25) || (atomState.p > 20 && npRatio >= 1.0 && npRatio <= 1.55);',
+    '  function sendAtomToMoleculeLab() {',
+    stabilityModel,
+    'nuclear stability disclaimer',
+  );
 
   return html;
 }
