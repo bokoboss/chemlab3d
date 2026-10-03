@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { buildAppHtml as buildCoreAppHtml } from '../scripts/build-app-core.mjs';
 import { buildAppHtml as buildCurrentAppHtml } from '../scripts/build-app.mjs';
+import { applyAccessibilityFoundation } from '../src/features/accessibility/build/index.mjs';
 import { applyReactionLab } from '../src/features/lab/build/reaction-lab.mjs';
 import { applyReactionSourceUi } from '../src/features/lab/build/reaction-source-ui.mjs';
 import { applyCompoundBuilderSemantics } from '../src/features/lab/build/compound-builder-semantics.mjs';
@@ -43,9 +44,11 @@ test('core build keeps neutral call sites backward-compatible', async () => {
 
 test('current build orchestration is byte-equivalent to the accepted transform order', async () => {
   const coreHtml = await buildCoreAppHtml();
-  const expected = applyCompoundBuilderSemantics(
-    applyReactionSourceUi(
-      applyReactionLab(coreHtml),
+  const expected = applyAccessibilityFoundation(
+    applyCompoundBuilderSemantics(
+      applyReactionSourceUi(
+        applyReactionLab(coreHtml),
+      ),
     ),
   );
   const actual = await buildCurrentAppHtml();
