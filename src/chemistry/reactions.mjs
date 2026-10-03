@@ -39,10 +39,23 @@ function normalizeSpecies(entry, side, index) {
   // as the Phase 1 chemistry-composition core.
   parseFormula(formula);
 
+  const state = normalizeState(entry.state);
+  const hasStateSource = entry.stateSource !== null && entry.stateSource !== undefined;
+  if (state !== null && !hasStateSource) {
+    throw new TypeError(`${side}[${index}].stateSource is required when a physical state is provided.`);
+  }
+  if (state === null && hasStateSource) {
+    throw new TypeError(`${side}[${index}].stateSource must not be supplied without a physical state.`);
+  }
+  const stateSource = state === null
+    ? null
+    : requireNonEmptyString(entry.stateSource, `${side}[${index}].stateSource`);
+
   return Object.freeze({
     formula,
     coefficient: normalizeCoefficient(entry.coefficient),
-    state: normalizeState(entry.state),
+    state,
+    stateSource,
   });
 }
 
