@@ -1,41 +1,65 @@
-function optionalFiniteNumber(value, label) {
+function optionalFiniteNumber(value, fieldName) {
   if (value === null || value === undefined) return null;
   if (typeof value !== 'number' || !Number.isFinite(value)) {
-    throw new Error(`${label} must be a finite number or null.`);
+    throw new TypeError(`${fieldName} must be a finite number or null.`);
   }
   return value;
 }
 
+function optionalSource(value, fieldName) {
+  if (value === null || value === undefined) return null;
+  if (typeof value !== 'string' || value.trim() === '') {
+    throw new TypeError(`${fieldName} must be a non-empty source string or null.`);
+  }
+  return value.trim();
+}
+
 export function makeReactionFacts({
   temperatureC = null,
+  temperatureSource = null,
   enthalpyKJMol = null,
   thermochemistrySource = null,
 } = {}) {
-  const temperature = optionalFiniteNumber(temperatureC, 'Temperature');
-  const enthalpy = optionalFiniteNumber(enthalpyKJMol, 'Enthalpy');
+  const normalizedTemperature = optionalFiniteNumber(temperatureC, 'temperatureC');
+  const normalizedTemperatureSource = optionalSource(temperatureSource, 'temperatureSource');
+  const normalizedEnthalpy = optionalFiniteNumber(enthalpyKJMol, 'enthalpyKJMol');
+  const normalizedThermochemistrySource = optionalSource(thermochemistrySource, 'thermochemistrySource');
 
-  if (enthalpy !== null && (typeof thermochemistrySource !== 'string' || thermochemistrySource.trim() === '')) {
-    throw new Error('Thermochemistry source is required when enthalpy data is provided.');
+  if (normalizedTemperature !== null && normalizedTemperatureSource === null) {
+    throw new TypeError('Temperature data requires a temperature source.');
+  }
+  if (normalizedTemperature === null && normalizedTemperatureSource !== null) {
+    throw new TypeError('temperatureSource must not be supplied without temperatureC.');
+  }
+  if (normalizedEnthalpy !== null && normalizedThermochemistrySource === null) {
+    throw new TypeError('Enthalpy data requires a thermochemistry source.');
+  }
+  if (normalizedEnthalpy === null && normalizedThermochemistrySource !== null) {
+    throw new TypeError('thermochemistrySource must not be supplied without enthalpyKJMol.');
   }
 
   return Object.freeze({
-    temperatureC: temperature,
-    enthalpyKJMol: enthalpy,
-    thermochemistrySource: enthalpy === null ? null : thermochemistrySource.trim(),
+    temperatureC: normalizedTemperature,
+    temperatureSource: normalizedTemperatureSource,
+    enthalpyKJMol: normalizedEnthalpy,
+    thermochemistrySource: normalizedThermochemistrySource,
   });
 }
 
 export function describeThermochemistry(facts) {
-  if (!facts || facts.enthalpyKJMol === null || facts.enthalpyKJMol === undefined) {
+  const normalized = makeReactionFacts(facts);
+  if (normalized.enthalpyKJMol === null) {
     return Object.freeze({ status: 'unknown' });
   }
 
-  const enthalpy = facts.enthalpyKJMol;
-  const type = enthalpy < 0 ? 'exothermic' : enthalpy > 0 ? 'endothermic' : 'thermoneutral';
+  let type = 'thermoneutral';
+  if (normalized.enthalpyKJMol < 0) type = 'exothermic';
+  if (normalized.enthalpyKJMol > 0) type = 'endothermic';
+
   return Object.freeze({
     status: 'known',
     type,
-    enthalpyKJMol: enthalpy,
-    source: facts.thermochemistrySource,
+    enthalpyKJMol: normalized.enthalpyKJMol,
+    source: normalized.thermochemistrySource,
   });
 }
