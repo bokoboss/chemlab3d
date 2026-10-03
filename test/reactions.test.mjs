@@ -9,6 +9,7 @@ import {
 function waterFormation(overrides = {}) {
   return {
     id: 'water-formation',
+    sources: ['SOURCE-ID'],
     reactants: [
       { formula: 'H2', coefficient: 2 },
       { formula: 'O2', coefficient: 1 },
@@ -20,13 +21,20 @@ function waterFormation(overrides = {}) {
   };
 }
 
-test('accepts a balanced reaction and conserves every element', () => {
+test('accepts a balanced sourced reaction and conserves every element', () => {
   const reaction = makeReaction(waterFormation());
   const balance = reactionBalance(reaction);
 
   assert.equal(balance.balanced, true);
   assert.deepEqual(balance.reactants, { H: 4, O: 2 });
   assert.deepEqual(balance.products, { H: 4, O: 2 });
+  assert.deepEqual(reaction.sources, ['SOURCE-ID']);
+});
+
+test('reaction identity/equation requires at least one provenance source', () => {
+  assert.throws(() => makeReaction(waterFormation({ sources: [] })), /source/i);
+  assert.throws(() => makeReaction(waterFormation({ sources: null })), /source/i);
+  assert.throws(() => makeReaction(waterFormation({ sources: [''] })), /source/i);
 });
 
 test('rejects an unbalanced reaction', () => {
