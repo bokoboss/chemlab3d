@@ -280,7 +280,8 @@ export async function buildAppHtml() {
       stabTitle.style.color = 'var(--accent-amber)';
       stabTitle.innerHTML = '🧭 แนวโน้มตามแบบจำลองอย่างง่าย: อยู่นอกช่วง Band of Stability';
       stabDesc.innerText = \`n/p = ${'${npRatio.toFixed(2)}'} อยู่นอกช่วงแนวโน้มของแบบจำลอง n/p อย่างง่าย ใช้เพื่อสังเกตแนวโน้มเท่านั้น ไม่ใช่การยืนยันว่าไอโซโทปเสถียรหรือกัมมันตรังสี; การสรุปจริงต้องอ้างอิงข้อมูลนิวไคลด์และการสลายตัว\`;
-    }`;
+    }
+  }`;
 
   html = replaceSection(
     html,
