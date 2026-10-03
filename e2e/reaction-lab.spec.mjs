@@ -26,7 +26,21 @@ test('Reaction Lab is distinct from Compound Builder while preserving the origin
   await expect(page.locator('#sb-mode-beaker')).toContainText('Compound Builder');
   await expect(page.locator('#beaker-particles-canvas')).toBeVisible();
   await expect(page.locator('#reaction-result-box')).toBeAttached();
+  await expect(page.locator('#sandbox-view-beaker')).toContainText('ไม่ใช่การจำลองว่าธาตุเหล่านี้ทำปฏิกิริยากันจริง');
+  await expect(page.locator('#cond-heat')).toContainText('เอฟเฟกต์ความร้อน');
+  await expect(page.locator('#cond-elec')).toContainText('เอฟเฟกต์ไฟฟ้า');
+  await expect(page.locator('#cond-cat')).toContainText('เอฟเฟกต์ตัวเร่ง');
   await attachScreen(page, testInfo, 'phase2-01-compound-builder');
+
+  // The printable workflow is preserved, but it is now an academically safe worksheet.
+  const labReportButton = page.locator('#sandbox-view-beaker button').filter({ hasText: 'รายงานแล็บ' }).first();
+  await labReportButton.click();
+  await expect(page.locator('#lab-report-modal')).toBeVisible();
+  await expect(page.locator('#lab-report-printable-area')).toContainText('ใบงาน Compound Builder');
+  await expect(page.locator('#lab-report-printable-area')).toContainText('ยังไม่ใช่เอกสารรับรองหลักสูตร');
+  await expect(page.locator('#lab-report-printable-area')).not.toContainText('สมการเคมีที่เกิดขึ้น');
+  await page.locator('#lab-report-modal .modal-close').click();
+  await expect(page.locator('#lab-report-modal')).toBeHidden();
 
   // Reaction Lab is a distinct mode using balanced, sourced reaction records.
   await page.locator('#sb-mode-reactionlab').click();
@@ -49,6 +63,7 @@ test('Reaction Lab is distinct from Compound Builder while preserving the origin
   await expect(sourceLinks.first()).toHaveAttribute('href', /chem\.libretexts\.org/);
   await expect(sourceLinks.first()).toHaveAttribute('target', '_blank');
   await expect(sourceLinks.first()).toHaveAttribute('rel', 'noopener noreferrer');
+  await expect(page.locator('#reactionlab-sources')).toContainText('รองรับข้อมูล: สมการ • สถานะสาร');
   await attachScreen(page, testInfo, 'phase2-02-reaction-lab');
 
   // Switching reactions updates the balanced equation and its source from the validated library.
@@ -60,12 +75,13 @@ test('Reaction Lab is distinct from Compound Builder while preserving the origin
   await expect(page.locator('#reactionlab-sources')).toContainText('OpenStax');
   await expect(page.locator('#reactionlab-sources a').first()).toHaveAttribute('href', /openstax\.org/);
 
-  // A reaction with a sourced condition exposes it, while catalyst/thermochemistry stay unknown.
+  // A reaction with a sourced condition exposes it and the source declares condition support.
   await page.locator('#reactionlab-select').selectOption('calcium-carbonate-decomposition');
   await expect(page.locator('#reactionlab-equation')).toHaveText('CaCO₃(s) → CaO(s) + CO₂(g)');
   await expect(page.locator('#reactionlab-condition-status')).toContainText('thermal decomposition');
   await expect(page.locator('#reactionlab-catalyst-status')).toContainText('รอแหล่งอ้างอิง');
   await expect(page.locator('#reactionlab-thermo-status')).toContainText('รอแหล่งอ้างอิง');
+  await expect(page.locator('#reactionlab-sources')).toContainText('เงื่อนไข');
 
   // Symbolic preview keeps the satisfying feedback but does not replace chemistry truth.
   const visualStage = page.locator('#reactionlab-visual-stage');

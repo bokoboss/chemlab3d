@@ -33,7 +33,7 @@ export const REACTION_SOURCES = Object.freeze({
     title: 'Patterns of Chemical Reactions — ammonia synthesis and calcium carbonate decomposition',
     publisher: 'Chemistry LibreTexts',
     url: 'https://chem.libretexts.org/Courses/Williams_School/Chemistry_I/04%3A_Stoichiometry_of_Chemical_Reactions/4.04%3A_Patterns_of_Chemical_Reactions',
-    supports: Object.freeze(['reaction', 'states', 'thermal-decomposition-context']),
+    supports: Object.freeze(['reaction', 'states', 'conditions']),
   }),
   'LIBRE-ALUMINIUM-OXIDATION': Object.freeze({
     title: 'Spontaneous Processes exercises — aluminium oxidation to aluminium oxide',
