@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { buildAppHtml } from '../scripts/build-app.mjs';
+import { buildAppHtml as buildPhase1AppHtml } from '../scripts/build-app.mjs';
+import { buildAppHtml as buildPhase2AppHtml } from '../scripts/build-app-phase2.mjs';
 
 const EXPERIENCE_MARKERS = [
   'id="tab-atom"',
@@ -14,7 +15,7 @@ const EXPERIENCE_MARKERS = [
 ];
 
 test('Phase 1 build preserves accepted experience while replacing legacy electron logic', async () => {
-  const html = await buildAppHtml();
+  const html = await buildPhase1AppHtml();
 
   for (const marker of EXPERIENCE_MARKERS) {
     assert.ok(html.includes(marker), `missing preserved experience marker: ${marker}`);
@@ -32,13 +33,13 @@ test('Phase 1 build preserves accepted experience while replacing legacy electro
 });
 
 test('Phase 1 build keeps neutral call sites backward-compatible', async () => {
-  const html = await buildAppHtml();
+  const html = await buildPhase1AppHtml();
   assert.ok(html.includes('function calculateBohrShells(electronCount, atomicNumber = electronCount)'));
   assert.ok(html.includes('function getSubshellElectronConfig(electronCount, atomicNumber = electronCount)'));
 });
 
 test('Phase 2 build adds Reaction Lab beside the preserved Compound Builder', async () => {
-  const html = await buildAppHtml();
+  const html = await buildPhase2AppHtml();
 
   assert.ok(html.includes('id="sb-mode-reactionlab"'));
   assert.ok(html.includes("switchSandboxMode('reactionlab')"));
