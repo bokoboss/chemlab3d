@@ -1,33 +1,38 @@
 # ChemLab 3D
 
-Interactive chemistry learning web app for Thai secondary-school students (ม.1–ม.6).
+Interactive chemistry learning web app for secondary-school learners (ม.1–ม.6).
 
 ## Product goal
 
 Build a chemistry learning experience that is:
 
-- **Interactive and engaging** — students learn by exploring, manipulating, experimenting, and practicing rather than only reading.
-- **Academically correct** — chemistry facts, equations, models, terminology, and simulations must be validated and must clearly distinguish exact science from simplified teaching models.
-- **Visually distinctive** — preserve and improve the existing 3D, animation, effects, interaction design, and polished dark scientific UI.
-- **Useful across secondary school** — connect atomic structure, periodic trends, bonding, molecules, reactions, laboratory concepts, and practice into one coherent learning journey.
+- **interactive and visually engaging** — 3D, animation, effects, simulations, quests and mini-games remain first-class learning tools;
+- **academically trustworthy** — chemistry facts and calculations must be evidence-based, validated, or clearly labelled as simplified models;
+- **progressively maintainable** — scientific domain logic is separated from rendering/UI so correctness can improve without sacrificing the accepted experience.
 
-## Non-negotiable preservation rule
+The project follows a six-phase plan documented in [`docs/PROJECT_CHARTER.md`](docs/PROJECT_CHARTER.md).
 
-Refactoring or correcting the chemistry core must **not** reduce the existing product experience. The current 3D models, visual effects, animations, sound, interactive controls, quests, mini-games, responsive behavior, and UI polish are treated as regression-protected product capabilities.
+## Current architecture
 
-A change is not accepted merely because the code is cleaner or the chemistry calculation is more correct. It must also preserve or improve the existing functional and visual experience.
+The accepted single-file prototype is preserved byte-for-byte as a regression baseline. The production build is generated from that baseline and applies tested chemistry-domain corrections without rewriting the visual experience.
 
-## Development plan
+```bash
+npm test             # chemistry, build and regression tests
+npm run build        # reconstruct accepted prototype + apply hardened chemistry adapters
+npm run test:browser # desktop/mobile Playwright preservation suite
+```
 
-1. **P0 Chemistry Core Hardening**
-2. **Reaction Architecture**
-3. **Codebase Refactor**
-4. **UX + Accessibility**
-5. **Performance + Offline**
-6. **Educational QA**
+## Non-regression rule
 
-See [`docs/PROJECT_CHARTER.md`](docs/PROJECT_CHARTER.md) for the project direction, preservation contract, quality gates, and detailed six-phase roadmap.
+Refactoring must not remove or materially degrade existing 3D rendering, effects, animation, interaction richness, responsive behavior, UX/UI polish, quests, simulations, or other accepted learning capabilities unless an intentional product decision explicitly replaces them with something better.
 
-## Source-of-truth policy
+## Phase status
 
-GitHub repository history, accepted baselines, tests, and project documentation are the source of truth. Major refactors should be incremental and regression-protected; avoid a big-bang rewrite.
+- **Phase 1 — P0 Chemistry Core Hardening:** accepted; chemistry core, exact baseline restoration, P0 UI integration, and desktop/mobile browser preservation gates are in place.
+- **Phase 2 — Reaction Architecture:** next — separate Compound Builder from evidence-backed Reaction Lab while preserving the current beaker/effects experience.
+- Phase 3 — Codebase Refactor
+- Phase 4 — UX + Accessibility
+- Phase 5 — Performance + Offline
+- Phase 6 — Educational QA
+
+See [`docs/PHASE_1_ACCEPTANCE.md`](docs/PHASE_1_ACCEPTANCE.md) for the Phase 1 acceptance record.
