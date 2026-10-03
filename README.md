@@ -17,8 +17,8 @@ The project follows a six-phase plan documented in [`docs/PROJECT_CHARTER.md`](d
 The accepted single-file prototype is preserved byte-for-byte as a regression baseline. The production build is generated from that baseline and applies tested chemistry-domain corrections without rewriting the visual experience.
 
 ```bash
-npm test            # chemistry, build and regression tests
-npm run build       # reconstruct accepted prototype + apply hardened chemistry adapters
+npm test             # chemistry, build and regression tests
+npm run build        # reconstruct accepted prototype + apply hardened chemistry adapters
 npm run test:browser # desktop/mobile Playwright preservation suite
 ```
 
@@ -28,9 +28,11 @@ Refactoring must not remove or materially degrade existing 3D rendering, effects
 
 ## Phase status
 
-- **Phase 1 — P0 Chemistry Core Hardening:** accepted on branch/PR completion; chemistry core, exact baseline restoration, browser preservation gates, and P0 UI integration are in place.
+- **Phase 1 — P0 Chemistry Core Hardening:** accepted; chemistry core, exact baseline restoration, P0 UI integration, and desktop/mobile browser preservation gates are in place.
 - **Phase 2 — Reaction Architecture:** next — separate Compound Builder from evidence-backed Reaction Lab while preserving the current beaker/effects experience.
 - Phase 3 — Codebase Refactor
 - Phase 4 — UX + Accessibility
 - Phase 5 — Performance + Offline
 - Phase 6 — Educational QA
+
+See [`docs/PHASE_1_ACCEPTANCE.md`](docs/PHASE_1_ACCEPTANCE.md) for the Phase 1 acceptance record.
