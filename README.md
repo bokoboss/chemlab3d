@@ -1,33 +1,30 @@
 # ChemLab 3D
 
-Interactive chemistry learning web app for Thai secondary-school students (ม.1–ม.6).
+ChemLab 3D is being developed into an interactive, engaging, academically trustworthy chemistry learning web app for secondary-school students.
 
-## Product goal
+## Product direction
 
-Build a chemistry learning experience that is:
+The project follows a preserve-first strategy: improve scientific correctness, maintainability, accessibility, and performance **without sacrificing the accepted prototype's 3D, visual effects, animation, interaction richness, UX/UI polish, responsive behavior, or feature breadth**.
 
-- **Interactive and engaging** — students learn by exploring, manipulating, experimenting, and practicing rather than only reading.
-- **Academically correct** — chemistry facts, equations, models, terminology, and simulations must be validated and must clearly distinguish exact science from simplified teaching models.
-- **Visually distinctive** — preserve and improve the existing 3D, animation, effects, interaction design, and polished dark scientific UI.
-- **Useful across secondary school** — connect atomic structure, periodic trends, bonding, molecules, reactions, laboratory concepts, and practice into one coherent learning journey.
+The current roadmap is documented in [`docs/PROJECT_CHARTER.md`](docs/PROJECT_CHARTER.md).
 
-## Non-negotiable preservation rule
+## Six-phase roadmap
 
-Refactoring or correcting the chemistry core must **not** reduce the existing product experience. The current 3D models, visual effects, animations, sound, interactive controls, quests, mini-games, responsive behavior, and UI polish are treated as regression-protected product capabilities.
+1. P0 Chemistry Core Hardening
+2. Reaction Architecture
+3. Codebase Refactor
+4. UX + Accessibility
+5. Performance + Offline
+6. Educational QA
 
-A change is not accepted merely because the code is cleaner or the chemistry calculation is more correct. It must also preserve or improve the existing functional and visual experience.
+## Development rule
 
-## Development plan
+Visual and interaction capability are regression gates. Refactoring is accepted only when chemistry correctness improves while the learning experience is preserved or improved.
 
-1. **P0 Chemistry Core Hardening**
-2. **Reaction Architecture**
-3. **Codebase Refactor**
-4. **UX + Accessibility**
-5. **Performance + Offline**
-6. **Educational QA**
+## Testing
 
-See [`docs/PROJECT_CHARTER.md`](docs/PROJECT_CHARTER.md) for the project direction, preservation contract, quality gates, and detailed six-phase roadmap.
+```bash
+npm test
+```
 
-## Source-of-truth policy
-
-GitHub repository history, accepted baselines, tests, and project documentation are the source of truth. Major refactors should be incremental and regression-protected; avoid a big-bang rewrite.
+The project intentionally starts with a zero-dependency Node test setup for the chemistry-domain layer.
