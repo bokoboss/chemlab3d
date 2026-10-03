@@ -5,7 +5,8 @@ on:
   pull_request:
 
 jobs:
-  test:
+  unit:
+    name: Chemistry / build regression
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -16,5 +17,38 @@ jobs:
         with:
           node-version: 22
 
-      - name: Run tests
+      - name: Run unit and integration tests
         run: npm test
+
+  browser-preservation:
+    name: Preserve 3D / effects / UX (desktop + mobile)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Install test dependencies
+        run: npm install --no-audit --no-fund
+
+      - name: Install Chromium and system dependencies
+        run: npx playwright install --with-deps chromium
+
+      - name: Run browser preservation suite
+        run: npm run test:browser
+
+      - name: Upload browser evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-preservation-${{ github.run_id }}
+          path: |
+            playwright-report/
+            test-results/
+          if-no-files-found: ignore
+          retention-days: 14
