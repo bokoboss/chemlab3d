@@ -14,12 +14,12 @@ The project follows a six-phase plan documented in [`docs/PROJECT_CHARTER.md`](d
 
 ## Current architecture
 
-The accepted single-file prototype is preserved byte-for-byte as a regression baseline. The current app is generated from that baseline through tested feature boundaries for hardened chemistry, Reaction Lab/Compound Builder semantics, mobile UX, viewer UX and accessibility. This preserves the original interaction-rich experience while allowing the scientific and product layers to improve incrementally.
+The accepted single-file prototype is preserved byte-for-byte as a regression baseline. The current app is generated from that baseline through tested feature boundaries for hardened chemistry, Reaction Lab/Compound Builder semantics, mobile UX, viewer UX, performance/offline packaging and accessibility. This preserves the original interaction-rich experience while allowing the scientific and product layers to improve incrementally.
 
 ```bash
 npm test             # chemistry, build, architecture and regression tests
-npm run build        # reconstruct accepted prototype + apply validated feature transforms
-npm run test:browser # desktop/mobile Playwright preservation and interaction suite
+npm run build        # reconstruct accepted prototype + apply validated feature transforms and PWA packaging
+npm run test:browser # desktop/mobile preservation, lifecycle and offline interaction suite
 ```
 
 ## Non-regression rule
@@ -32,10 +32,11 @@ Refactoring must not remove or materially degrade existing 3D rendering, effects
 - **Phase 2 — Reaction Architecture:** accepted.
 - **Phase 3 — Codebase Refactor:** accepted; stable build/feature boundaries and architecture guardrails are in place.
 - **Phase 4 — UX + Accessibility:** accepted; keyboard/dialog/reduced-motion support, scoped grade filtering, mobile learning navigation, periodic-table navigation and mobile 3D ergonomics are regression-protected.
-- **Phase 5 — Performance + Offline:** next.
-- **Phase 6 — Educational QA:** planned after performance/offline hardening.
+- **Phase 5 — Performance + Offline:** accepted; hidden continuous loops are lifecycle-gated, major WebGL resources initialize on demand, critical 3D/effects runtime assets are self-hosted and first-visit offline reload is browser-tested.
+- **Phase 6 — Educational QA:** next — full content validation, provenance, terminology, curriculum mapping and final educational release criteria.
 
 Acceptance records:
 
 - [`docs/PHASE_1_ACCEPTANCE.md`](docs/PHASE_1_ACCEPTANCE.md)
 - [`docs/PHASE_4_ACCEPTANCE.md`](docs/PHASE_4_ACCEPTANCE.md)
+- [`docs/PHASE_5_ACCEPTANCE.md`](docs/PHASE_5_ACCEPTANCE.md)
