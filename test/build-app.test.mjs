@@ -5,6 +5,7 @@ import { buildAppHtml as buildCurrentAppHtml } from '../scripts/build-app.mjs';
 import { applyAccessibilityFoundation } from '../src/features/accessibility/build/index.mjs';
 import { applyMobileUx } from '../src/features/mobile-ux/build/index.mjs';
 import { applyViewerUx } from '../src/features/viewer-ux/build/index.mjs';
+import { applyRuntimeLifecycle } from '../src/features/performance/build/index.mjs';
 import { applyReactionLab } from '../src/features/lab/build/reaction-lab.mjs';
 import { applyReactionSourceUi } from '../src/features/lab/build/reaction-source-ui.mjs';
 import { applyCompoundBuilderSemantics } from '../src/features/lab/build/compound-builder-semantics.mjs';
@@ -47,11 +48,13 @@ test('core build keeps neutral call sites backward-compatible', async () => {
 test('current build orchestration is byte-equivalent to the accepted transform order', async () => {
   const coreHtml = await buildCoreAppHtml();
   const expected = applyAccessibilityFoundation(
-    applyViewerUx(
-      applyMobileUx(
-        applyCompoundBuilderSemantics(
-          applyReactionSourceUi(
-            applyReactionLab(coreHtml),
+    applyRuntimeLifecycle(
+      applyViewerUx(
+        applyMobileUx(
+          applyCompoundBuilderSemantics(
+            applyReactionSourceUi(
+              applyReactionLab(coreHtml),
+            ),
           ),
         ),
       ),
@@ -82,6 +85,18 @@ test('current build reduces mobile 3D control density without removing advanced 
   assert.ok(html.includes('openReactionPathwaysModal()'));
   assert.ok(html.includes('openExportModal()'));
   assert.ok(html.includes('--text-dim: #7c8aa0'));
+});
+
+test('current build gates the major idle animation loops without removing the active experiences', async () => {
+  const html = await buildCurrentAppHtml();
+  assert.ok(html.includes('CHEMLAB_RUNTIME_LIFECYCLE_SCRIPT'));
+  assert.ok(html.includes('function ensureAtomAnimation()'));
+  assert.ok(html.includes('function ensureViewerAnimation()'));
+  assert.ok(html.includes('function ensureBeakerFXAnimation()'));
+  assert.ok(html.includes('window.ChemLabRuntimeLifecycle'));
+  assert.ok(html.includes('function initThree()'));
+  assert.ok(html.includes('function spawnBeakerFX(type)'));
+  assert.ok(html.includes('function drawAtomCanvas()'));
 });
 
 test('current build adds Reaction Lab beside the preserved Compound Builder', async () => {
