@@ -7,12 +7,15 @@ import { applyBuildTransforms } from './build-transform-pipeline.mjs';
 import { LAB_BUILD_TRANSFORMS } from '../src/features/lab/build/index.mjs';
 import { MOBILE_UX_BUILD_TRANSFORMS } from '../src/features/mobile-ux/build/index.mjs';
 import { VIEWER_UX_BUILD_TRANSFORMS } from '../src/features/viewer-ux/build/index.mjs';
+import { PERFORMANCE_BUILD_TRANSFORMS } from '../src/features/performance/build/index.mjs';
+import { applyOfflineShell, writeOfflineAssets } from '../src/features/offline/build/index.mjs';
 import { ACCESSIBILITY_BUILD_TRANSFORMS } from '../src/features/accessibility/build/index.mjs';
 
 export const CURRENT_APP_TRANSFORMS = Object.freeze([
   ...LAB_BUILD_TRANSFORMS,
   ...MOBILE_UX_BUILD_TRANSFORMS,
   ...VIEWER_UX_BUILD_TRANSFORMS,
+  ...PERFORMANCE_BUILD_TRANSFORMS,
   ...ACCESSIBILITY_BUILD_TRANSFORMS,
 ]);
 
@@ -30,9 +33,11 @@ export async function buildAppHtml() {
 }
 
 export async function writeBuiltApp(outputPath = join(PROJECT_ROOT, 'dist', 'index.html')) {
-  const html = await buildAppHtml();
-  await mkdir(dirname(outputPath), { recursive: true });
+  const html = applyOfflineShell(await buildAppHtml());
+  const outputDir = dirname(outputPath);
+  await mkdir(outputDir, { recursive: true });
   await writeFile(outputPath, html, 'utf8');
+  await writeOfflineAssets(outputDir);
   return outputPath;
 }
 

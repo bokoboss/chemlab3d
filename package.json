@@ -7,6 +7,10 @@
     "test": "node --test",
     "test:browser": "playwright test"
   },
+  "dependencies": {
+    "canvas-confetti": "1.6.0",
+    "three": "0.128.0"
+  },
   "devDependencies": {
     "@playwright/test": "1.63.0"
   }
