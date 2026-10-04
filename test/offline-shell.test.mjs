@@ -13,7 +13,7 @@ test('offline shell replaces critical CDN scripts with local runtime assets and 
   const html = applyOfflineShell(sample);
   assert.ok(html.includes('./vendor/three.r128.min.js'));
   assert.ok(html.includes('./vendor/OrbitControls.r128.js'));
-  assert.ok(html.includes('./vendor/confetti.browser.min.js'));
+  assert.ok(html.includes('./vendor/confetti.browser.js'));
   assert.ok(html.includes('manifest.webmanifest'));
   assert.ok(html.includes('CHEMLAB_OFFLINE_PWA_REGISTER'));
   assert.equal(html.includes('cdnjs.cloudflare.com/ajax/libs/three.js'), false);
@@ -27,6 +27,6 @@ test('manifest, service worker and icon sources are valid build artifacts', () =
   assert.equal(manifest.icons[0].type, 'image/svg+xml');
   assert.doesNotThrow(() => new vm.Script(buildServiceWorker()));
   assert.match(buildServiceWorker(), /three\.r128\.min\.js/);
-  assert.match(buildServiceWorker(), /confetti\.browser\.min\.js/);
+  assert.match(buildServiceWorker(), /confetti\.browser\.js/);
   assert.match(buildIconSvg(), /<svg/);
 });
