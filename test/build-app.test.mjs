@@ -4,6 +4,7 @@ import { buildAppHtml as buildCoreAppHtml } from '../scripts/build-app-core.mjs'
 import { buildAppHtml as buildCurrentAppHtml } from '../scripts/build-app.mjs';
 import { applyAccessibilityFoundation } from '../src/features/accessibility/build/index.mjs';
 import { applyMobileUx } from '../src/features/mobile-ux/build/index.mjs';
+import { applyViewerUx } from '../src/features/viewer-ux/build/index.mjs';
 import { applyReactionLab } from '../src/features/lab/build/reaction-lab.mjs';
 import { applyReactionSourceUi } from '../src/features/lab/build/reaction-source-ui.mjs';
 import { applyCompoundBuilderSemantics } from '../src/features/lab/build/compound-builder-semantics.mjs';
@@ -46,10 +47,12 @@ test('core build keeps neutral call sites backward-compatible', async () => {
 test('current build orchestration is byte-equivalent to the accepted transform order', async () => {
   const coreHtml = await buildCoreAppHtml();
   const expected = applyAccessibilityFoundation(
-    applyMobileUx(
-      applyCompoundBuilderSemantics(
-        applyReactionSourceUi(
-          applyReactionLab(coreHtml),
+    applyViewerUx(
+      applyMobileUx(
+        applyCompoundBuilderSemantics(
+          applyReactionSourceUi(
+            applyReactionLab(coreHtml),
+          ),
         ),
       ),
     ),
@@ -66,6 +69,19 @@ test('current build adds mobile learning navigation without replacing accepted t
   assert.ok(html.includes('id="tab-btn-atom"'));
   assert.ok(html.includes('id="tab-btn-flashcards"'));
   assert.ok(html.includes('id="ptable-grid-container"'));
+});
+
+test('current build reduces mobile 3D control density without removing advanced viewer tools', async () => {
+  const html = await buildCurrentAppHtml();
+  assert.ok(html.includes('CHEMLAB_VIEWER_UX_STYLE'));
+  assert.ok(html.includes('CHEMLAB_VIEWER_UX_SCRIPT'));
+  assert.ok(html.includes('chemlab-mobile-3d-tools-open'));
+  assert.ok(html.includes('btn-measure'));
+  assert.ok(html.includes('btn-labels'));
+  assert.ok(html.includes('openIsomerModal()'));
+  assert.ok(html.includes('openReactionPathwaysModal()'));
+  assert.ok(html.includes('openExportModal()'));
+  assert.ok(html.includes('--text-dim: #7c8aa0'));
 });
 
 test('current build adds Reaction Lab beside the preserved Compound Builder', async () => {
