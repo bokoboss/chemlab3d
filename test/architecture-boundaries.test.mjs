@@ -47,6 +47,7 @@ test('feature build boundaries do not depend back on scripts', async () => {
     join(ROOT, 'src', 'features', 'performance', 'build'),
     join(ROOT, 'src', 'features', 'offline', 'build'),
     join(ROOT, 'src', 'features', 'accessibility', 'build'),
+    join(ROOT, 'src', 'features', 'education-qa', 'build'),
   ];
   for (const directory of featureBuildDirs) {
     for (const path of await mjsFilesUnder(directory)) {
@@ -72,5 +73,6 @@ test('stable app entrypoint consumes feature boundaries rather than implementati
   assert.match(source, /src\/features\/performance\/build\/index\.mjs/);
   assert.match(source, /src\/features\/offline\/build\/index\.mjs/);
   assert.match(source, /src\/features\/accessibility\/build\/index\.mjs/);
+  assert.match(source, /src\/features\/education-qa\/build\/index\.mjs/);
   assert.doesNotMatch(source, /reaction-lab-build|reaction-source-ui-build|compound-builder-semantics-build/);
 });
