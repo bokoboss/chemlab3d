@@ -62,6 +62,6 @@ Device-specific frame-rate and energy profiling can be added later against repre
 
 Non-critical remote resources such as Google Fonts may still be requested when online. They are not required for core chemistry interactions or 3D runtime availability after the app has been cached.
 
-## Next phase
+## Completion
 
-Phase 6 — Educational QA: systematic chemistry-content validation, provenance coverage, Thai/English terminology, curriculum mapping, misconception review, assessment validity and final educational release criteria.
+Phase 6 — Educational QA was completed for the v1 release boundary after this phase. Its acceptance decision and documented limitations are recorded in [`PHASE_6_ACCEPTANCE.md`](PHASE_6_ACCEPTANCE.md), and the overall project is closed in [`PROJECT_CLOSEOUT.md`](PROJECT_CLOSEOUT.md).

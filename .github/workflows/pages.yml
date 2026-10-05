@@ -1,8 +1,11 @@
 name: Deploy GitHub Pages
 
+# Project closeout policy:
+# GitHub Pages must be enabled once at repository level with
+# Settings -> Pages -> Build and deployment -> Source: GitHub Actions.
+# The default GITHUB_TOKEN cannot perform that first-time enablement, so
+# deployment is manual and is not part of the release regression gate.
 on:
-  push:
-    branches: [main]
   workflow_dispatch:
 
 permissions:

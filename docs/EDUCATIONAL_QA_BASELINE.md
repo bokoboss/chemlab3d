@@ -1,5 +1,7 @@
 # Educational QA Baseline
 
+> **Status:** This document records the Phase 6 starting inventory and the high-risk corrections that established the v1 educational QA baseline. Final release acceptance is recorded in [`PHASE_6_ACCEPTANCE.md`](PHASE_6_ACCEPTANCE.md). The deeper provenance and curriculum-mapping items at the end of this document are optional future assurance work, not blockers for the v1 closeout.
+
 ## Purpose
 
 This record starts Phase 6 by separating four kinds of learner-facing content:
@@ -65,11 +67,15 @@ Machine-readable source metadata is kept in `src/education/qa/sources.mjs`. Batc
 - BIPM SI definition of the mole / Avogadro constant;
 - IUPAC Gold Book definition of STP / standard gas conditions.
 
-## Next QA slices
+## Deferred higher-assurance work
 
-1. element-property provenance and description review;
-2. molecule geometry/VSEPR/polarity/dipole review with representation context;
-3. Reaction Lab equation/state/condition provenance completeness;
+The v1 release does not claim completion of the following deeper assurance activities. They should be treated as a new scope if the project is reopened:
+
+1. item-level element-property provenance and description review;
+2. item-level molecule geometry/VSEPR/polarity provenance beyond the current representation safeguards;
+3. complete Reaction Lab equation/state/condition provenance;
 4. curriculum outcome matrix by concept, not merely by grade label;
-5. quest/flashcard/quiz validity and misconception review;
-6. Thai/English terminology consistency and final educational release gate.
+5. exhaustive quest/flashcard/quiz validity review beyond the current regression-protected corrections;
+6. exhaustive Thai/English terminology normalization.
+
+These items are deliberately documented so the application does not overstate its academic assurance level.
