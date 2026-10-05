@@ -1,5 +1,7 @@
 import { extractJsonConst, replaceJsonConst } from '../../../education/qa/inventory.mjs';
 import { GUIDE_TEXT_PATCHES, QUEST_DESCRIPTION_PATCHES } from '../../../education/qa/content-review.mjs';
+import { reviewMoleculeLibrary } from '../../../education/qa/molecule-review.mjs';
+import { applyMoleculePresentationReview } from '../../../education/qa/molecule-presentation.mjs';
 
 const MARKER = 'CHEMLAB_EDUCATIONAL_QA_V1';
 
@@ -11,6 +13,10 @@ function replaceExpected(source, needle, replacement, label) {
 
 export function applyEducationalQa(html) {
   if (html.includes(MARKER)) throw new Error('educational QA already applied');
+
+  const molecules = extractJsonConst(html, 'MOLECULES_DATA');
+  html = replaceJsonConst(html, 'MOLECULES_DATA', reviewMoleculeLibrary(molecules));
+  html = applyMoleculePresentationReview(html);
 
   const quests = extractJsonConst(html, 'QUESTS_DATA');
   const reviewedQuests = quests.map((quest) => {

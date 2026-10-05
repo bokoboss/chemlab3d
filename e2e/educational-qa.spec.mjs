@@ -23,3 +23,32 @@ test('Guide is transparent about curriculum status and renders corrected chemist
   expect(text).not.toContain('$p^+$');
   expect(text).not.toContain('สรุปเนื้อหาเคมีตามหลักสูตรแกนกลาง');
 });
+
+test('3D library distinguishes ionic formula units and keeps dipole visualization qualitative', async ({ page }) => {
+  await page.goto('/', { waitUntil: 'domcontentloaded' });
+  await page.locator('#tab-btn-viewer').click();
+
+  await page.evaluate(() => {
+    const card = [...document.querySelectorAll('.molecule-card')].find((el) => el.textContent.includes('NaCl'));
+    if (!card) throw new Error('NaCl card not found');
+    card.click();
+    document.getElementById('btn-dipole')?.click();
+  });
+
+  const naclDetails = await page.locator('#details-sidebar-container').innerText();
+  expect(naclDetails).toContain('หน่วยสูตร');
+  const naclDipole = await page.locator('#dipole-badge-el').textContent();
+  expect(naclDipole).toContain('ไม่ใช้ molecular dipole');
+
+  await page.evaluate(() => {
+    const card = [...document.querySelectorAll('.molecule-card')].find((el) => el.textContent.includes('H₂O'));
+    if (!card) throw new Error('H2O card not found');
+    card.click();
+    document.getElementById('btn-dipole')?.click();
+    document.getElementById('btn-dipole')?.click();
+  });
+  const waterDipole = await page.locator('#dipole-badge-el').textContent();
+  expect(waterDipole).toContain('qualitative');
+  expect(waterDipole).toContain('ไม่ใช่ค่า dipole moment ที่วัดได้');
+  expect(waterDipole).not.toMatch(/\d+(?:\.\d+)?\s*D\b/);
+});

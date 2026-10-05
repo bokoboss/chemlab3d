@@ -3,9 +3,10 @@ import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import { restoreAcceptedBaseline } from '../scripts/baseline.mjs';
 import { buildAppHtml as buildCurrentAppHtml } from '../scripts/build-app.mjs';
-import { buildEducationalQaInventory } from '../src/education/qa/inventory.mjs';
+import { buildEducationalQaInventory, extractJsonConst } from '../src/education/qa/inventory.mjs';
 import { EDUCATIONAL_QA_SOURCES } from '../src/education/qa/sources.mjs';
 import { QUEST_DESCRIPTION_PATCHES } from '../src/education/qa/content-review.mjs';
+import { reviewMoleculeLibrary, summarizeMoleculeReview } from '../src/education/qa/molecule-review.mjs';
 import { applyEducationalQa } from '../src/features/education-qa/build/index.mjs';
 
 test('accepted content inventory remains explicit and reviewable', async () => {
@@ -52,6 +53,43 @@ test('reviewed guide removes premature curriculum certification and misconceptio
   assert.doesNotMatch(reviewed, /อิเล็กตรอน \(e⁻\) วิ่งอยู่โดยรอบ/);
 });
 
+test('molecule representation QA distinguishes formula units, context-dependent structures and discrete molecules', async () => {
+  const html = (await restoreAcceptedBaseline()).toString('utf8');
+  const summary = summarizeMoleculeReview(extractJsonConst(html, 'MOLECULES_DATA'));
+  assert.deepEqual(summary.byKind, {
+    molecule: 69,
+    'ionic-formula-unit': 14,
+    'context-dependent': 3,
+  });
+  assert.equal(summary.renderCompositionIncomplete.length, 25);
+  assert.equal(summary.dipoleVectorSupported.length, 46);
+  assert.equal(summary.numericDipoleClaimsRemoved.length, 23);
+});
+
+test('molecule review removes unsourced numeric dipole values without fabricating replacements', async () => {
+  const html = (await restoreAcceptedBaseline()).toString('utf8');
+  const reviewed = reviewMoleculeLibrary(extractJsonConst(html, 'MOLECULES_DATA'));
+  const byId = Object.fromEntries(reviewed.map((entry) => [entry.id, entry]));
+
+  assert.equal(byId.chcl3.polarity, 'โมเลกุลมีขั้ว (Polar)');
+  assert.equal(byId.c2h6.polarity, 'ไม่มีขั้ว (Non-polar)');
+  assert.equal(byId.chcl3.educationalQa.numericDipoleClaimRemoved, true);
+  assert.equal(byId.nacl.educationalQa.representationKind, 'ionic-formula-unit');
+  assert.equal(byId.nacl.educationalQa.dipoleVectorSupported, false);
+  assert.equal(byId.alcl3.educationalQa.representationKind, 'context-dependent');
+  assert.equal(byId.becl2.educationalQa.representationKind, 'context-dependent');
+});
+
+test('learner-facing dipole tool is qualitative and does not impute unknown electronegativity', async () => {
+  const reviewed = applyEducationalQa((await restoreAcceptedBaseline()).toString('utf8'));
+  assert.doesNotMatch(reviewed, /len \* 0\.9/);
+  assert.doesNotMatch(reviewed, /e1 \? e1\.en : 2\.5/);
+  assert.match(reviewed, /แนวโน้มมีขั้ว \(qualitative\)/);
+  assert.match(reviewed, /ไม่ใช่ค่า dipole moment ที่วัดได้/);
+  assert.match(reviewed, /ไม่ใช้ molecular dipole กับหน่วยสูตร\/โครงผลึกไอออนิก/);
+  assert.match(reviewed, /const saysPolar = polarityText\.includes\('มีขั้ว'\) && !polarityText\.includes\('ไม่มีขั้ว'\)/);
+});
+
 test('educational QA evidence registry identifies official curriculum and metrology sources', () => {
   assert.equal(Object.keys(EDUCATIONAL_QA_SOURCES).length, 5);
   assert.match(EDUCATIONAL_QA_SOURCES['obec-science-core-2560'].url, /academic\.obec\.go\.th/);
@@ -66,7 +104,9 @@ test('production build pipeline applies educational QA before offline packaging'
 
   const html = applyEducationalQa(await buildCurrentAppHtml());
   assert.ok(html.includes('CHEMLAB_EDUCATIONAL_QA_V1'));
+  assert.ok(html.includes('CHEMLAB_MOLECULE_QA_PRESENTATION'));
   assert.ok(html.includes('แนวทางทบทวนเคมีระดับมัธยม'));
+  assert.ok(html.includes('โครงสร้าง 3D'));
 });
 
 test('education QA feature stays independent from scripts layer', async () => {
