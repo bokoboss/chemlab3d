@@ -8,6 +8,7 @@ import { LAB_BUILD_TRANSFORMS } from '../src/features/lab/build/index.mjs';
 import { MOBILE_UX_BUILD_TRANSFORMS } from '../src/features/mobile-ux/build/index.mjs';
 import { VIEWER_UX_BUILD_TRANSFORMS } from '../src/features/viewer-ux/build/index.mjs';
 import { PERFORMANCE_BUILD_TRANSFORMS } from '../src/features/performance/build/index.mjs';
+import { applyEducationalQa } from '../src/features/education-qa/build/index.mjs';
 import { applyOfflineShell, writeOfflineAssets } from '../src/features/offline/build/index.mjs';
 import { ACCESSIBILITY_BUILD_TRANSFORMS } from '../src/features/accessibility/build/index.mjs';
 
@@ -33,7 +34,8 @@ export async function buildAppHtml() {
 }
 
 export async function writeBuiltApp(outputPath = join(PROJECT_ROOT, 'dist', 'index.html')) {
-  const html = applyOfflineShell(await buildAppHtml());
+  const reviewedHtml = applyEducationalQa(await buildAppHtml());
+  const html = applyOfflineShell(reviewedHtml);
   const outputDir = dirname(outputPath);
   await mkdir(outputDir, { recursive: true });
   await writeFile(outputPath, html, 'utf8');
